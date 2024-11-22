@@ -6,6 +6,7 @@
  */ 
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 
 
 int main(void)
@@ -13,6 +14,17 @@ int main(void)
     /* Replace with your application code */
     while (1) 
     {
+		
     }
+}
+
+typedef struct Color {
+	unsigned char r, g, b;
+};
+
+void show(Color* colors, int colors_len) {
+	cli
+	asm("nop")
+	sei
 }
 
