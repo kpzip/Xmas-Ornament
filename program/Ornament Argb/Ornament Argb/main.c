@@ -7,6 +7,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <stdint.h>
 
 #define nop __asm__ volatile("nop");
 
@@ -40,6 +41,8 @@ int main(void)
 		nop
 	}
 }
+
+extern void output_grb(uint8_t * ptr, uint16_t count);
 
 inline void setup() {
 	// Set LED Pin as output
