@@ -29,9 +29,9 @@ output_grb:
 loop1:
          out    PORTB, r20    ; 1   +0 start of a bit pulse
          lsl    r18           ; 1   +1 next bit into C, MSB first
-         brcs   L1            ; 1/2 +2 branch if 1
-		 ; shoud be a nop here but reached the limit for branching
 		 nop
+		 nop
+         brcs   L1            ; 1/2 +2 branch if 1
          out    PORTB, r21    ; 1   +3 end hi for '0' bit (3 clocks hi)
 		 nop
 		 nop
@@ -46,8 +46,6 @@ loop1:
          breq   bit8          ; 1/2 +7 last bit, do differently
          rjmp   loop1         ; 2   +8, 10 total for 0 bit
 L1:
-         nop
-		 nop
          nop                  ; 1   +4
          bst    r18, 7        ; 1   +5 save last bit of data for fast branching
          subi   r19, 1        ; 1   +6 how many more bits for this byte
@@ -63,10 +61,11 @@ L1:
 bit8:
          ldi    r19, 7        ; 1   +9 bit count for next byte
          out    PORTB, r20    ; 1   +0 start of a bit pulse
+		 nop
+		 nop
+         nop
          brts   L2            ; 1/2 +1 branch if last bit is a 1
-		 nop
-		 nop
-         nop                  ; 1   +2
+							  ; 1   +2
          out    PORTB, r21    ; 1   +3 end hi for '0' bit (3 clocks hi)
 		 nop
 		 nop
@@ -75,16 +74,13 @@ bit8:
 		 nop
 		 nop
 		 nop
-		 ; should be a nop here but reached the limit for branching
+		 nop
          ld     r18, X+       ; 2   +4 fetch next byte
          sbiw   r24, 1        ; 2   +6 dec byte counter
          brne   loop1         ; 2   +8 loop back or return
          out    SREG, r22     ; restore global int flag
          ret
 L2:
-         nop
-		 nop
-		 nop
          ld     r18, X+       ; 2   +3 fetch next byte
          sbiw   r24, 1        ; 2   +5 dec byte counter
          out     PORTB, r21   ; 1   +7 end hi for '1' bit (7 clocks hi)
