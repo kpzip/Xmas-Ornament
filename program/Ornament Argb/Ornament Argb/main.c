@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 
 // For setting individual bits
 #define sbi(x,b) (x) |= 1<<(b)
@@ -21,6 +22,7 @@
 #define LED_PIN 6
 #define SWITCH_PIN 5
 #define STRIP_LEN 10
+#define NUM_PROGRAMS 2
 
 // Order is important! colors are sent as g, r, b
 typedef struct Color {
@@ -29,7 +31,14 @@ typedef struct Color {
 	unsigned char b;
 } Color;
 
+const Color red = { .r = 128, .g = 0, .b = 0 };
+const Color white = { .r = 128, .g = 128, .b = 128 };
+const Color gold = { .r = 255, .g = 255, .b = 0 };
+const Color green = { .r = 0, .g = 255, .b = 0 };
+
 static Color strip[STRIP_LEN];
+static int program = 0;
+static bool press_detected;
 
 extern void output_grb(uint8_t * ptr, uint16_t count);
 extern void reset();
@@ -43,35 +52,61 @@ inline void setup() {
 	
 }
 
-inline void show(Color *colors, int colors_len) {
+inline void show(Color * colors, int colors_len) {
 	output_grb((uint8_t*) colors, colors_len * sizeof(Color));
 	reset();
 }
 
-void set_solid(Color c) {
-	for (int i = 0; i < STRIP_LEN; i++) {
-		strip[i] = c;
+inline void set_solid(Color c, Color * colors, int colors_len) {
+	for (int i = 0; i < colors_len; i++) {
+		colors[i] = c;
 	}
 }
 
-int main(void)
-{
+void candy_cane() {
+	strip[STRIP_LEN - 1] = gold;
+	set_solid(red, strip, STRIP_LEN - 1);
+	show(strip, STRIP_LEN);
+	_delay_ms(1000);
+	set_solid(white, strip, STRIP_LEN - 1);
+	show(strip, STRIP_LEN);
+	_delay_ms(1000);
+}
+
+void solid_green() {
+	strip[STRIP_LEN - 1] = gold;
+	set_solid(green, strip, STRIP_LEN - 1);
+	_delay_ms(1000);
+}
+
+int main(void) {
+	
+	// Initialize IO
 	setup();
 	
 	// Set colors to all zero
 	memset(strip, 0, sizeof(Color) * STRIP_LEN);
 	
-	
-	Color red = { .r = 128, .g = 0, .b = 0 };
-	Color white = { .r = 128, .g = 128, .b = 128 };
-	
-	while (1)
-	{
-		set_solid(red);
-		show(strip, STRIP_LEN);
-		_delay_ms(1000);
-		set_solid(white);
-		show(strip, STRIP_LEN);
-		_delay_ms(1000);
+	while (1) {
+		
+		if (PORTB & (1 << SWITCH_PIN) != 0) {
+			if (!press_detected) {
+				press_detected = true;
+				program++;
+				program %= NUM_PROGRAMS;
+			}
+		}
+		else {
+			press_detected = false;
+		}
+		
+		switch (program) {
+			case 1:
+				candy_cane();	
+				break;
+			case 2:
+				solid_green();
+				break;
+		}
 	}
 }
