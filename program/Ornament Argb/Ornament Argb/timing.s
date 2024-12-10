@@ -11,7 +11,7 @@
 ; r24:25 = 16-bit count
 ; r26:27 (X) = data pointer
 
-.equ      OUTBIT,   0
+.equ      OUTBIT,   6
 
 
 .global output_grb
@@ -30,33 +30,84 @@ loop1:
          out    PORTB, r20    ; 1   +0 start of a bit pulse
          lsl    r18           ; 1   +1 next bit into C, MSB first
          brcs   L1            ; 1/2 +2 branch if 1
+		 ; shoud be a nop here but reached the limit for branching
+		 nop
          out    PORTB, r21    ; 1   +3 end hi for '0' bit (3 clocks hi)
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
          nop                  ; 1   +4
          bst    r18, 7        ; 1   +5 save last bit of data for fast branching
          subi   r19, 1        ; 1   +6 how many more bits for this byte?
          breq   bit8          ; 1/2 +7 last bit, do differently
          rjmp   loop1         ; 2   +8, 10 total for 0 bit
 L1:
+         nop
+		 nop
          nop                  ; 1   +4
          bst    r18, 7        ; 1   +5 save last bit of data for fast branching
          subi   r19, 1        ; 1   +6 how many more bits for this byte
          out    PORTB, r21    ; 1   +7 end hi for '1' bit (7 clocks hi)
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
          brne   loop1         ; 2/1 +8 10 total for 1 bit (fall thru if last bit)
 bit8:
          ldi    r19, 7        ; 1   +9 bit count for next byte
          out    PORTB, r20    ; 1   +0 start of a bit pulse
          brts   L2            ; 1/2 +1 branch if last bit is a 1
+		 nop
+		 nop
          nop                  ; 1   +2
          out    PORTB, r21    ; 1   +3 end hi for '0' bit (3 clocks hi)
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
+		 ; should be a nop here but reached the limit for branching
          ld     r18, X+       ; 2   +4 fetch next byte
          sbiw   r24, 1        ; 2   +6 dec byte counter
          brne   loop1         ; 2   +8 loop back or return
          out    SREG, r22     ; restore global int flag
          ret
 L2:
+         nop
+		 nop
+		 nop
          ld     r18, X+       ; 2   +3 fetch next byte
          sbiw   r24, 1        ; 2   +5 dec byte counter
          out     PORTB, r21   ; 1   +7 end hi for '1' bit (7 clocks hi)
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
          brne   loop1         ; 2   +8 loop back or return
          out    SREG, r22     ; restore global int flag
          ret
+
+.global reset
+reset:
+         ldi	r18, 0xFF
+reset_loop:
+         dec	r18
+		 nop
+		 nop
+		 nop
+		 nop
+		 nop
+		 brne	reset_loop
+		 ret

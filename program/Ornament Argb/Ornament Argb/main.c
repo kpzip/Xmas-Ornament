@@ -8,6 +8,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdint.h>
+#include <string.h>
 
 #define nop __asm__ volatile("nop");
 
@@ -19,30 +20,17 @@
 #define SWITCH_PIN 5
 #define STRIP_LEN 10
 
+// Order is important! colors are sent as g, r, b
 typedef struct Color {
-	unsigned char r, g, b;
+	unsigned char g;
+	unsigned char r;
+	unsigned char b;
 } Color;
 
 static Color strip[STRIP_LEN];
 
-int main(void)
-{
-	setup();
-	memset(strip, 128, sizeof(Color) * STRIP_LEN);
-	Color red = { .r = 128, .g = 0, .b = 0 };
-	strip[0] = red;
-	//writeByte(0);
-	show(strip, 1);
-    /* Replace with your application code */
-    while (1) 
-    {
-		//sbi(PORTB, LED_PIN);
-		//cbi(PORTB, LED_PIN);
-		nop
-	}
-}
-
 extern void output_grb(uint8_t * ptr, uint16_t count);
+extern void reset();
 
 inline void setup() {
 	// Set LED Pin as output
@@ -53,113 +41,21 @@ inline void setup() {
 	
 }
 
-void show(Color *colors, int colors_len) {
-	cli();
-	for (int i = 0; i < colors_len; i++) {
-		writeByte(colors[i].g);
-		writeByte(colors[i].r);
-		writeByte(colors[i].b);
-	}
-	sei();
-	resetCode();
+inline void show(Color *colors, int colors_len) {
+	output_grb((uint8_t*) colors, colors_len * sizeof(Color));
+	reset();
 }
 
-// Interrupts should be disabled before calling!
-inline void writeByte(unsigned char b) {
-	for (int i = 7; i >= 0; i--) {
-		if (b & (1 << (i)) == 0) {
-			writeZero();
-		}
-		else {
-			writeOne();
-		}
-	}
-}
-
-// Interrupts should be disabled before calling!
-inline void writeOne() {
-	// Might want to use hardware timers instead of nops in the future
-	// T1H = 0.6 +/- 0.15 uS -> 10 clock cycles
-	// T1L = 0.6 +/- 0.15 uS -> 10 clock cycles
+int main(void)
+{
+	setup();
+	memset(strip, 0, sizeof(Color) * STRIP_LEN);
+	Color red = { .r = 128, .g = 0, .b = 0 };
+	strip[0] = red;
+	show(strip, 1);
 	
-	// Set high - Low is default
-	sbi(PORTB, LED_PIN);
-	
-	nop
-	nop
-	nop
-	nop
-	nop
-	
-	nop
-	nop
-	nop
-	//nop
-	//nop
-	
-	// Set low
-	cbi(PORTB, LED_PIN);
-	
-	//nop
-	nop
-	nop
-	//nop
-	//nop
-	
-	//nop
-	//nop
-	//nop
-	//nop
-	//nop
-	
-	// Leave it as low
-}
-
-// Interrupts should be disabled before calling!
-inline void writeZero() {
-	// Might want to use hardware timers instead of nops in the future
-	// T0H = 0.3 +/- 0.15 uS -> 5 clock cycles
-	// T0L = 0.9 +/- 0.15 uS -> 15 clock cycles
-	
-	// Set high - Low is default
-	sbi(PORTB, LED_PIN);
-	
-	nop
-	nop
-	nop
-	//nop
-	//nop
-	
-	// Set low
-	cbi(PORTB, LED_PIN);
-	
-	//nop
-	nop
-	nop
-	nop
-	nop
-	
-	nop
-	nop
-	nop
-	//nop
-	//nop
-	
-	//nop
-	//nop
-	//nop
-	//nop
-	//nop
-	
-	// Leave it as low
-}
-
-// Send reset code
-// Interrupts *can* be enabled since longer is fine
-inline void resetCode() {
-	cbi(PORTB, LED_PIN);
-	for (int i = 0; i > 1000; i++) {
+	while (1)
+	{
 		nop
 	}
 }
-
