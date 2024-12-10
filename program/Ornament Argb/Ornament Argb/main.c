@@ -5,14 +5,16 @@
  * Author : kpzip
  */ 
 
+#define F_CPU 16000000UL
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
+
 #include <stdint.h>
 #include <string.h>
 
-#define nop __asm__ volatile("nop");
-
-// IMPORTANT: These should compile to one instruction for timing purposes. Luckily the avr gcc makers knew what they were doing!
+// For setting individual bits
 #define sbi(x,b) (x) |= 1<<(b)
 #define cbi(x,b) (x) &= ~(1<<(b))
 
@@ -46,16 +48,30 @@ inline void show(Color *colors, int colors_len) {
 	reset();
 }
 
+void set_solid(Color c) {
+	for (int i = 0; i < STRIP_LEN; i++) {
+		strip[i] = c;
+	}
+}
+
 int main(void)
 {
 	setup();
+	
+	// Set colors to all zero
 	memset(strip, 0, sizeof(Color) * STRIP_LEN);
+	
+	
 	Color red = { .r = 128, .g = 0, .b = 0 };
-	strip[0] = red;
-	show(strip, 1);
+	Color white = { .r = 128, .g = 128, .b = 128 };
 	
 	while (1)
 	{
-		nop
+		set_solid(red);
+		show(strip, STRIP_LEN);
+		_delay_ms(1000);
+		set_solid(white);
+		show(strip, STRIP_LEN);
+		_delay_ms(1000);
 	}
 }
