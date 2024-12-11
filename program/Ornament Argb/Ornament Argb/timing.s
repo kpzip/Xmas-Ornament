@@ -106,4 +106,5 @@ reset_loop:
 		 nop
 		 nop
 		 brne	reset_loop
+		 sei
 		 ret

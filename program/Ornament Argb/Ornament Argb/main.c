@@ -20,7 +20,7 @@
 #define cbi(x,b) (x) &= ~(1<<(b))
 
 #define LED_PIN 6
-#define SWITCH_PIN 5
+#define SWITCH_PIN PCINT5
 #define STRIP_LEN 10
 #define NUM_PROGRAMS 2
 
@@ -38,7 +38,7 @@ const Color green = { .r = 0, .g = 255, .b = 0 };
 
 static Color strip[STRIP_LEN];
 static int program = 0;
-static bool press_detected;
+static bool press_detected = false;
 
 extern void output_grb(uint8_t * ptr, uint16_t count);
 extern void reset();
@@ -48,7 +48,16 @@ inline void setup() {
 	sbi(DDRB, LED_PIN);
 	// Set program change switch pin as input and engage pull-up resistor
 	cbi(DDRB, SWITCH_PIN);
-	//
+	// Enable pull-up resistor for input
+	sbi(PORTB, SWITCH_PIN);
+	
+	//sbi(PCMSK0, SWITCH_PIN);
+	//sbi(PCIFR, 0);
+	//sbi(PCICR, 0);
+	
+	
+	
+	sei();
 	
 }
 
@@ -76,6 +85,14 @@ void candy_cane() {
 void solid_green() {
 	strip[STRIP_LEN - 1] = gold;
 	set_solid(green, strip, STRIP_LEN - 1);
+	show(strip, STRIP_LEN);
+	_delay_ms(1000);
+}
+
+void solid_white() {
+	strip[STRIP_LEN - 1] = gold;
+	set_solid(white, strip, STRIP_LEN - 1);
+	show(strip, STRIP_LEN);
 	_delay_ms(1000);
 }
 
@@ -88,8 +105,7 @@ int main(void) {
 	memset(strip, 0, sizeof(Color) * STRIP_LEN);
 	
 	while (1) {
-		
-		if (PORTB & (1 << SWITCH_PIN) != 0) {
+		if ((PINB & (1 << (SWITCH_PIN))) == 0) {
 			if (!press_detected) {
 				press_detected = true;
 				program++;
@@ -101,11 +117,14 @@ int main(void) {
 		}
 		
 		switch (program) {
-			case 1:
+			case 0:
 				candy_cane();	
 				break;
-			case 2:
+			case 1:
 				solid_green();
+				break;
+			default:
+				solid_white();
 				break;
 		}
 	}
