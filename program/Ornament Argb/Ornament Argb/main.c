@@ -188,7 +188,7 @@ void green_red() {
 static float hue_val = 0.0;
 
 #define SATURATION 100.0f
-#define INTENSITY 100.0f
+#define INTENSITY 75.0f
 
 void rgb() {
 	strip[STRIP_LEN - 1] = gold;
@@ -197,8 +197,8 @@ void rgb() {
 		strip[i] = c;
 	}
 	show(strip, STRIP_LEN);
-	_delay_ms(100);
-	hue_val += 5;
+	_delay_ms(25);
+	hue_val += 1;
 	hue_val = fmod(hue_val, 360);
 }
 
