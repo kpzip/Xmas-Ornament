@@ -39,6 +39,7 @@ const Color red = { .r = 128, .g = 0, .b = 0 };
 const Color white = { .r = 128, .g = 128, .b = 128 };
 const Color gold = { .r = 255, .g = 255, .b = 0 };
 const Color green = { .r = 0, .g = 255, .b = 0 };
+const Color lush_green = { .r = 50, .g = 168, .b = 82 };
 const Color off = { .r = 0, .g = 0, .b = 0 };
 
 static Color strip[STRIP_LEN];
